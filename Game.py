@@ -1,21 +1,30 @@
 import random
 import time
-global deck, players_hand, cont, computer_hand, comp_cont, player_score, computer_score, chips
+global deck, players_hand, cont, computer_hand, comp_cont, player_score, computer_score, chips, blackjack
 deck = ["A\u2665", "2\u2665", "3\u2665", "4\u2665", "5\u2665", "6\u2665", "7\u2665", "8\u2665","9\u2665", "10\u2665", "J\u2665", "Q\u2665", "K\u2665",
         "A\u25C6", "2\u25C6", "3\u25C6", "4\u25C6", "5\u25C6", "6\u25C6", "7\u25C6", "8\u25C6","9\u25C6", "10\u25C6", "J\u25C6", "Q\u25C6", "K\u25C6",
         "A\u2660", "2\u2660", "3\u2660", "4\u2660", "5\u2660", "6\u2660", "7\u2660", "8\u2660","9\u2660", "10\u2660", "J\u2660", "Q\u2660", "K\u2660",
         "A\u2663", "2\u2663", "3\u2663", "4\u2663", "5\u2663", "6\u2663", "7\u2663", "8\u2663","9\u2663", "10\u2663", "J\u2663", "Q\u2663", "K\u2663"]
 chips = 10
+blackjack = False
+
+def check_blackjack(card1, card2):
+    tens = ["1", "J", "Q", "K"]
+    if card1[0] == "A" and card2[0] in tens or card2[0] == "A" and card1[0] in tens:
+        print("*****BLACKJACK*****")
+        return True
 
 def print_delay(string):
     print(string)
     time.sleep(1)
     
 def winner(player, computer, bet):
-    global chips
-    if player == computer:
-        print_delay("Draw")
-    if player > computer and player <= 21:
+    global chips, blackjack
+    if blackjack == True:
+        winnings = int((bet / 2) * 3) + bet
+        print_delay("Player Wins. Chip winnings: " + str(winnings))
+        chips += winnings
+    elif player > computer and player <= 21:
         winnings = bet * 2
         print_delay("Player Wins. Chip winnings: " + str(winnings))
         chips += winnings
@@ -27,13 +36,17 @@ def winner(player, computer, bet):
         winnings = bet * 2
         print_delay("Computer bust... Player Wins. Chip winnings: " + str(winnings))
         chips += winnings
+    elif player == computer:
+        print_delay("Draw")
 
 def calculate_score(hand):
     total = 0
-    tens = ["A", "1", "J", "Q", "K"]
+    tens = ["1", "J", "Q", "K"]
     for card in hand:
         if card[0] in tens:
             total += 10
+        elif card[0] == "A":
+            total += 11
         else:
             total += int(card[0])
     return total
@@ -61,13 +74,14 @@ def players_option():
         twist(players_hand)
 
 def players_start_turn():
-    global deck, players_hand
+    global deck, players_hand, blackjack
     players_hand = []
     card1 = random.choice(deck)
     card2 = random.choice(deck)
     players_hand.append(card1)
     players_hand.append(card2)
     print_delay("You have been dealt: " + card1 + " " + card2)
+    blackjack = check_blackjack(card1, card2)
     print_delay("Total: " + str(calculate_score(players_hand)))
 
 def computer_start_turn():
@@ -99,7 +113,7 @@ def game():
     global chips
     dealing = True
     print("Starting chip balance: ", chips)
-    while dealing == True:
+    while dealing == True and chips > 0:
         bet = int(input("Please enter your betting amount: "))
         while bet > chips:
             print_delay("Bet exceeds chip balance!")
@@ -116,5 +130,7 @@ def game():
             dealing = False
             print_delay("Thank you for playing BlackJack today!")
             print_delay("Your closing chip balance is: " + str(chips))
+    if chips <= 0:
+        print_delay("Sorry you have run out of chips :(")
 
 game()
